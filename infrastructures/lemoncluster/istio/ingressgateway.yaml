@@ -1,0 +1,65 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: istio-ingressgateway
+  namespace: istio-system
+spec:
+  interval: 1h
+  dependsOn:
+    - name: istiod
+  chart:
+    spec:
+      chart: gateway
+      version: "1.26.0"
+      sourceRef:
+        kind: HelmRepository
+        name: istio
+        namespace: istio-system
+      interval: 1h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    replicaCount: 4
+    autoscaling:
+      enabled: false
+    resources:
+      requests:
+        cpu: 400m
+        memory: 1Gi
+      limits:
+        cpu: 800m
+        memory: 1Gi
+    service:
+      type: LoadBalancer
+      annotations:
+        cloudprovider.harvesterhci.io/ipam: dhcp
+        external-dns.alpha.kubernetes.io/hostname: "kibana.lem.devkuban.com,grafana.lem.devkuban.com,kyverno.lem.devkuban.com,kiali.lem.devkuban.com,vmui.lem.devkuban.com"
+      ports:
+        - port: 15021
+          targetPort: 15021
+          name: status-port
+        - port: 15443
+          targetPort: 15443
+          name: tls-istiod
+        - port: 8080
+          targetPort: 8080
+          name: http
+        - port: 8443
+          targetPort: 8443
+          name: https-business
+        - port: 8081
+          targetPort: 8081
+          name: http-business-internal
+        - port: 8444
+          targetPort: 8444
+          name: https-business-internal
+        - name: http2
+          port: 80
+          targetPort: 80
+        - name: https
+          port: 443
+          targetPort: 443

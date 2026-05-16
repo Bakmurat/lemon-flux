@@ -1,0 +1,10 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: tls-dest-rule
+  namespace: istio-system
+spec:
+  host: "*.devkuban.com"
+  trafficPolicy:
+    tls:
+      mode: DISABLE
