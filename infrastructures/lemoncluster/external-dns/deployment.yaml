@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+  namespace: external-dns
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: external-dns
+  template:
+    metadata:
+      labels:
+        app: external-dns
+    spec:
+      serviceAccount: external-dns
+      containers:
+      - name: external-dns
+        image: registry.k8s.io/external-dns/external-dns:v0.13.5
+        args:
+          - '--source=service'
+          - '--source=istio-gateway'
+          - '--provider=pdns'
+          - '--pdns-server=http://192.168.0.80:8081'
+          - '--pdns-api-key=$(api_key)'
+          - '--domain-filter=devkuban.com'
+          - '--log-level=debug'
+          - '--interval=1m'
+          - '--txt-owner-id=lemoncluster'
+          - '--registry=txt'
+          - '--txt-prefix=external-dns-'
+          - '--annotation-filter=external-dns.alpha.kubernetes.io/hostname'
+        env:
+        - name: api_key
+          valueFrom:
+            secretKeyRef:
+              name: pdns-api-key
+              key: api-key
