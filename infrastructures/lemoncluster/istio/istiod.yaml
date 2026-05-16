@@ -44,12 +44,12 @@ spec:
           cpu: 600m
           memory: 1Gi
       env:
-        PILOT_TRACE_SAMPLING: "10"
         PILOT_PUSH_THROTTLE: "100"
     meshConfig:
       enableTracing: true
       enablePrometheusMerge: true
       defaultConfig:
         tracing:
+          sampling: 10
           zipkin:
             address: "zipkin.monitoring:9411"
