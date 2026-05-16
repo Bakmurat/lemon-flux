@@ -1,0 +1,23 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: grafana-vs
+  namespace: monitoring
+spec:
+  hosts:
+    - "grafana.lem.devkuban.com"
+  gateways:
+    - istio-system/grafana-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            host: kube-prometheus-stack-grafana
+            port:
+              number: 80
+      headers:
+        response:
+          set:
+            Strict-Transport-Security: "max-age=31536000; includeSubDomains"
