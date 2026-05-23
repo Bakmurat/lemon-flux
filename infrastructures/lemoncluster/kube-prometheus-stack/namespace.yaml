@@ -4,3 +4,4 @@ metadata:
   name: monitoring
   labels:
     app.kubernetes.io/managed-by: flux
+    istio-injection: enabled
