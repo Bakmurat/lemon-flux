@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: kibana-vs
+  namespace: logging
+spec:
+  hosts:
+    - "kibana.lem.devkuban.com"
+  gateways:
+    - istio-system/kibana-gateway
+  http:
+    - route:
+        - destination:
+            host: kibana-kibana
+            port:
+              number: 5601

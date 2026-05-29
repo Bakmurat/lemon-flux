@@ -1,0 +1,75 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kibana
+  namespace: logging
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: kibana
+      version: 7.17.3
+      sourceRef:
+        kind: HelmRepository
+        name: elastic
+        namespace: logging
+      interval: 1h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    elasticsearchHosts: "http://elasticsearch-master:9200"
+
+    replicas: 1
+
+    image: "docker.elastic.co/kibana/kibana"
+    imageTag: "7.17.3"
+    imagePullPolicy: "IfNotPresent"
+
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "500Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+
+    protocol: http
+
+    serverHost: "0.0.0.0"
+
+    healthCheckPath: "/app/kibana"
+
+    service:
+      type: ClusterIP
+      port: 5601
+
+    ingress:
+      enabled: false
+
+    lifecycle:
+      postStart:
+        exec:
+          command:
+            - bash
+            - -c
+            - |
+              #!/bin/bash
+              while [[ "$(curl -s -o /dev/null -w '%{http_code}\n' http://elasticsearch-master:9200)" != "200" ]]; do
+                echo "Waiting for Elasticsearch..."
+                sleep 5
+              done
+              echo "Elasticsearch is ready!"
+
+    podSecurityContext:
+      fsGroup: 1000
+
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      runAsNonRoot: true
+      runAsUser: 1000

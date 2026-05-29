@@ -1,0 +1,162 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: fluentd
+  namespace: logging
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: fluentd
+      version: 0.5.2
+      sourceRef:
+        kind: HelmRepository
+        name: fluent
+        namespace: logging
+      interval: 1h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    kind: "DaemonSet"
+    variant: elasticsearch7
+
+    image:
+      repository: fluent/fluentd-kubernetes-daemonset
+      pullPolicy: IfNotPresent
+
+    serviceAccount:
+      create: true
+
+    rbac:
+      create: true
+
+    resources:
+      requests:
+        cpu: 150m
+        memory: 300Mi
+      limits:
+        cpu: 300m
+        memory: 600Mi
+
+    podSecurityContext:
+      enabled: true
+      fsGroup: 0
+      runAsUser: 0
+      runAsGroup: 0
+
+    securityContext:
+      privileged: true
+      capabilities:
+        add: ["SYS_ADMIN"]
+
+    persistence:
+      enabled: false
+
+    livenessProbe:
+      httpGet:
+        path: /metrics
+        port: metrics
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+    readinessProbe:
+      httpGet:
+        path: /metrics
+        port: metrics
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+    tolerations:
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+
+    service:
+      enabled: true
+      type: "ClusterIP"
+      ports:
+        - name: "forward"
+          protocol: TCP
+          containerPort: 24224
+
+    metrics:
+      serviceMonitor:
+        enabled: false
+
+    volumeMounts:
+      - name: posfile-storage
+        mountPath: /fluentd/log
+
+    volumes:
+      - name: posfile-storage
+        emptyDir: {}
+
+    fileConfigs:
+      00_monitor.conf: |
+        <source>
+          @type prometheus
+          bind 0.0.0.0
+          port 24231
+        </source>
+
+      01_sources.conf: |
+        <source>
+          @type tail
+          @id in_tail_container_logs
+          path /var/log/containers/*.log
+          pos_file /fluentd/log/containers.pos
+          tag kubernetes.*
+          read_from_head true
+          rotate_wait 5
+          <parse>
+            @type cri
+          </parse>
+        </source>
+
+      02_filters.conf: |
+        <filter kubernetes.**>
+          @type kubernetes_metadata
+          @id filter_kube_metadata
+          skip_labels false
+          skip_container_metadata false
+          skip_namespace_metadata true
+          skip_master_url true
+        </filter>
+
+      03_outputs.conf: |
+        <match kubernetes.**>
+          @type elasticsearch
+          host "elasticsearch-master"
+          port 9200
+          scheme http
+          path ""
+          verify_es_version_at_startup false
+          @log_level info
+          reconnect_on_error true
+
+          logstash_format true
+          logstash_prefix k8s
+          include_tag_key true
+          suppress_type_name true
+          type_name _doc
+
+          request_timeout 60s
+
+          <buffer>
+            flush_interval 5s
+            chunk_limit_size 8m
+            total_limit_size 512m
+            overflow_action drop_oldest_chunk
+          </buffer>
+        </match>

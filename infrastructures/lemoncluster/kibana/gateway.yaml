@@ -1,0 +1,28 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: kibana-gateway
+  namespace: istio-system
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "kibana.lem.devkuban.com"
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "kibana.lem.devkuban.com"
+      tls:
+        httpsRedirect: true
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - "kibana.lem.devkuban.com"
+      tls:
+        mode: SIMPLE
+        credentialName: wildcard-lem-devkuban-com-tls
