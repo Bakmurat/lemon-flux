@@ -43,7 +43,6 @@ spec:
         memory: 600Mi
 
     podSecurityContext:
-      enabled: true
       fsGroup: 0
       runAsUser: 0
       runAsGroup: 0
