@@ -91,7 +91,7 @@ spec:
 
     metrics:
       serviceMonitor:
-        enabled: false
+        enabled: true
 
     volumeMounts:
       - name: posfile-storage
