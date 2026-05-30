@@ -1,0 +1,131 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: keda
+  namespace: keda
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: keda
+      version: "2.19.0"
+      sourceRef:
+        kind: HelmRepository
+        name: kedacore
+        namespace: keda
+      interval: 1h
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  upgrade:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  values:
+    crds:
+      install: true
+    image:
+      keda:
+        registry: ghcr.io
+        repository: kedacore/keda
+        tag: "2.19.0"
+      metricsApiServer:
+        registry: ghcr.io
+        repository: kedacore/keda-metrics-apiserver
+        tag: "2.19.0"
+      webhooks:
+        registry: ghcr.io
+        repository: kedacore/keda-admission-webhooks
+        tag: "2.19.0"
+    serviceAccount:
+      create: true
+      name: keda-operator
+    prometheus:
+      metricServer:
+        enabled: true
+        port: 9022
+        portName: metrics
+        path: /metrics
+        serviceMonitor:
+          enabled: true
+      operator:
+        enabled: true
+        port: 8080
+        portName: metrics
+        path: /metrics
+        serviceMonitor:
+          enabled: true
+      webhooks:
+        enabled: true
+        port: 8080
+        portName: metrics
+        path: /metrics
+        serviceMonitor:
+          enabled: true
+    podSecurityContext:
+      operator:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      metricServer:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      webhooks:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+    securityContext:
+      operator:
+        capabilities:
+          drop:
+            - ALL
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        seccompProfile:
+          type: RuntimeDefault
+      metricServer:
+        capabilities:
+          drop:
+            - ALL
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        seccompProfile:
+          type: RuntimeDefault
+      webhooks:
+        capabilities:
+          drop:
+            - ALL
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        seccompProfile:
+          type: RuntimeDefault
+    resources:
+      operator:
+        requests:
+          cpu: 100m
+          memory: 100Mi
+        limits:
+          cpu: 1000m
+          memory: 1000Mi
+      metricServer:
+        requests:
+          cpu: 100m
+          memory: 100Mi
+        limits:
+          cpu: 1000m
+          memory: 1000Mi
+      webhooks:
+        requests:
+          cpu: 50m
+          memory: 50Mi
+        limits:
+          cpu: 500m
+          memory: 500Mi
+    logging:
+      operator:
+        level: info
+        format: console
+      metricServer:
+        level: 0
