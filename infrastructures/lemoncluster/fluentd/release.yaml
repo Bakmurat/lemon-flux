@@ -103,10 +103,35 @@ spec:
 
     fileConfigs:
       00_monitor.conf: |
+        # Exposes the Prometheus scrape endpoint on /metrics
         <source>
           @type prometheus
           bind 0.0.0.0
           port 24231
+        </source>
+        # Plugin/process level metrics (fluentd_status_buffer_queue_length, fluentd_status_buffer_total_bytes)
+        <source>
+          @type prometheus_monitor
+          interval 10
+          <labels>
+            host ${hostname}
+          </labels>
+        </source>
+        # Output plugin metrics (fluentd_output_status_emit_count/records, retry_count, rollback_count, flush, buffer)
+        <source>
+          @type prometheus_output_monitor
+          interval 10
+          <labels>
+            host ${hostname}
+          </labels>
+        </source>
+        # Tail input metrics (fluentd_tail_file_position, fluentd_tail_file_inode, opened/closed/rotated)
+        <source>
+          @type prometheus_tail_monitor
+          interval 10
+          <labels>
+            host ${hostname}
+          </labels>
         </source>
 
       01_sources.conf: |

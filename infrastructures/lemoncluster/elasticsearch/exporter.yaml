@@ -1,0 +1,58 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: prometheus-community
+  namespace: logging
+spec:
+  interval: 24h
+  url: https://prometheus-community.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: elasticsearch-exporter
+  namespace: logging
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: prometheus-elasticsearch-exporter
+      version: 7.2.1
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: logging
+      interval: 1h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    es:
+      # Cluster reachable via the headless/master service inside the namespace
+      uri: http://elasticsearch-master:9200
+      # Scrape every level so the dashboard has cluster, node, index and shard data
+      all: true
+      indices: true
+      indices_settings: true
+      indices_mappings: true
+      shards: true
+      snapshots: true
+      cluster_settings: true
+      timeout: 30s
+
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+    # Auto-discovered by the kube-prometheus-stack Prometheus
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+      scrapeTimeout: 10s
