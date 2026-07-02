@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cloudflared-egress
+  namespace: moathsalman
+spec:
+  podSelector:
+    matchLabels:
+      app: moathsalman-cloudflared
+  policyTypes:
+    - Egress
+  egress:
+    # Allow DNS resolution (required to resolve the nginx Service hostname)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow traffic to the nginx Service only
+    - to:
+        - podSelector:
+            matchLabels:
+              app: moathsalman-nginx
+      ports:
+        - protocol: TCP
+          port: 8080

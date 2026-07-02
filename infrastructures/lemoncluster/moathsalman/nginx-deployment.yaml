@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: moathsalman
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moathsalman-nginx
+  template:
+    metadata:
+      labels:
+        app: moathsalman-nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:stable
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: site-content
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      volumes:
+        - name: site-content
+          configMap:
+            name: moathsalman-site
