@@ -1,10 +1,18 @@
-# moathsalman.com — Static Site via Cloudflare Tunnel
+# moathsalman.com — Personal Site via Cloudflare Tunnel
 
 ## What this is
 
-A static personal site (`moathsalman.com`) hosted on the `lemoncluster` Kubernetes
+A personal résumé site (`moathsalman.com`) hosted on the `lemoncluster` Kubernetes
 cluster (Harvester/HCI + FluxCD GitOps), made publicly reachable through a
 **Cloudflare Tunnel** rather than through the cluster's normal ingress path.
+
+The site is a single self-contained page: the full résumé rendered as styled
+HTML, over an animated **Three.js solar system + Milky Way** background, plus a
+few interactive touches (see [Site content & features](#site-content--features)).
+All content — HTML, the profile photo, and the résumé PDF — lives inside one
+Kubernetes ConfigMap and is served by nginx; nothing is fetched from external
+storage. The only runtime external dependency is the three.js library, loaded
+from a CDN in the browser.
 
 ## Why a tunnel, not the existing ingress
 
@@ -95,8 +103,8 @@ All under `infrastructures/lemoncluster/moathsalman/`:
 | File | Purpose |
 |---|---|
 | `namespace.yaml` | Dedicated namespace, isolates RBAC/NetworkPolicy/secrets scope |
-| `configmap.yaml` | Holds `index.html` — simplest possible static-site delivery |
-| `nginx-deployment.yaml` | `nginxinc/nginx-unprivileged` (non-root, port 8080), mounts the ConfigMap read-only |
+| `configmap.yaml` | Serves the whole site: `index.html` (the résumé page) under `data`, plus `photo.jpg` and `resume.pdf` under `binaryData` (base64). Mounted into nginx's web root, so each key becomes a served file (`/`, `/photo.jpg`, `/resume.pdf`). ~187 KB total — see the [1 MB limit note](#site-content--features) |
+| `nginx-deployment.yaml` | `nginxinc/nginx-unprivileged` (non-root, port 8080), mounts the **entire** ConfigMap read-only at `/usr/share/nginx/html` |
 | `nginx-service.yaml` | ClusterIP, port 80 → targetPort 8080. **Name must match exactly** what's configured as the tunnel's public-hostname target |
 | `cloudflared-sealedsecret.yaml` | Tunnel token, sealed — never committed in plaintext |
 | `cloudflared-deployment.yaml` | `cloudflare/cloudflared`, 2 replicas, `tunnel --no-autoupdate run`, token via `env.valueFrom.secretKeyRef`, `TUNNEL_TRANSPORT_PROTOCOL=http2` (see Issues below), no Service (outbound-only) |
@@ -106,6 +114,46 @@ All under `infrastructures/lemoncluster/moathsalman/`:
 **Why `nginx-unprivileged`, not stock `nginx`:** stock nginx binds port 80,
 which needs root inside the container. The unprivileged image listens on
 8080 and runs non-root out of the box — simpler and safer.
+
+### Site content & features
+
+The single `index.html` (in `configmap.yaml` under `data`) is a self-contained
+page — all CSS and JS are inline; the only external asset is three.js from a CDN
+(`cdnjs.cloudflare.com`, loaded browser-side). It contains:
+
+- **The full résumé as HTML** — summary, categorized skills, experience, and
+  certifications (not a PDF embed). A **Download PDF** button serves the real
+  `resume.pdf`, and a **🇺🇸 U.S. Citizen · No sponsorship required** badge sits
+  under the name.
+- **Three.js solar system + Milky Way background** — the Sun plus all 8 planets
+  orbiting (Earth with its Moon, Saturn with rings), a tilted Milky Way band, and
+  a starfield. Each planet maps to a skill; **hovering** a planet shows it.
+- **Interactivity** — click empty space for a shooting star; mouse-move drifts
+  the camera (parallax).
+- **☁️ Cloud Trivia** — an optional quiz (button in the hero card). A 51-question
+  bank on AWS/Kubernetes/Terraform/etc.; each play draws 10 at random with
+  shuffled answers, streak-bonus scoring, and a final rank.
+- **Easter eggs** — a typewriter animation cycles the role line; a fake terminal
+  (the `❯_ terminal` button, or press the `` ` `` key) responds to `help`,
+  `whoami`, `skills`, `kubectl get pods`, `neofetch`, etc.; and the **Konami code**
+  (↑↑↓↓←→←→ B A) triggers a "hyperdrive" that speeds up the planets.
+
+**How the PDF and photo are served:** nginx mounts the *entire* ConfigMap into
+its web root, so every key becomes a file — `data.index.html` → `/`,
+`binaryData.photo.jpg` → `/photo.jpg`, `binaryData.resume.pdf` → `/resume.pdf`.
+Binary assets go under `binaryData` (base64); Kubernetes decodes them back to
+raw bytes on mount, so nginx serves the real image/PDF with correct MIME types.
+
+**The 1 MB ConfigMap limit:** a ConfigMap (stored in etcd) is capped at ~1 MB
+total. This site is ~187 KB (photo ~53 KB + PDF ~52 KB, each ~+33% as base64,
+plus HTML), so there's plenty of headroom — but a large or multi-page PDF, or
+bundling three.js locally (~600 KB → ~800 KB base64) instead of via CDN, would
+blow the limit. That CDN dependency is deliberate, not accidental.
+
+**Regenerating `configmap.yaml`:** the file is generated, not hand-edited — the
+base64 blobs are impractical to edit by hand. Edit the source `index.html`, then
+rebuild the ConfigMap by base64-encoding the HTML (as a `data` block scalar) and
+the photo/PDF (as `binaryData`), and commit the result.
 
 **Why the NetworkPolicy matters:** cloudflared has open outbound internet
 access by default. Without this policy, a compromised token/image could
