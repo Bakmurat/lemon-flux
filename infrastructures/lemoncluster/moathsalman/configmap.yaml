@@ -69,6 +69,31 @@ data:
         background:rgba(129,140,248,.96); color:#0b1020; pointer-events:none; opacity:0; transition:opacity .12s;
         transform:translate(-50%,-150%); white-space:nowrap; box-shadow:0 8px 24px rgba(0,0,0,.4); }
       #tip small { display:block; font-weight:500; color:#1e1b4b; opacity:.8; }
+      /* Cloud Trivia */
+      .btn-trivia { border:0; cursor:pointer; background:linear-gradient(135deg,var(--sky),var(--indigo)); color:#0b1020; box-shadow:0 8px 24px rgba(56,189,248,.4); }
+      .btn-trivia:hover { filter:brightness(1.08); }
+      #quiz { position:fixed; inset:0; z-index:20; display:none; place-items:center; padding:1.5rem; background:rgba(1,3,12,.85); backdrop-filter:blur(6px); }
+      #quiz .qcard { width:100%; max-width:560px; background:rgba(10,15,35,.96); border:1px solid rgba(129,140,248,.35); border-radius:20px; padding:1.8rem 1.8rem 2rem; box-shadow:0 30px 90px rgba(0,0,0,.75); }
+      #quiz .qtop { display:flex; justify-content:space-between; align-items:center; font-size:.85rem; color:#94a3b8; margin-bottom:.4rem; }
+      #quiz .qtop b { color:var(--indigo2); } #quiz .streak { color:#f59e0b; }
+      #quiz .bar { height:6px; border-radius:99px; background:#1e293b; overflow:hidden; margin-bottom:1.2rem; }
+      #quiz .bar > div { height:100%; background:linear-gradient(90deg,var(--sky),var(--indigo)); width:0; transition:width .3s; }
+      #quiz .cat { display:inline-block; font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:#0b1020; background:var(--indigo2); padding:.15rem .55rem; border-radius:6px; margin-bottom:.7rem; font-weight:700; }
+      #quiz .q { font-size:1.18rem; font-weight:600; margin-bottom:1.2rem; line-height:1.4; }
+      #quiz .opts { display:grid; gap:.6rem; }
+      #quiz .opt { text-align:left; padding:.8rem 1rem; border-radius:12px; border:1px solid rgba(148,163,184,.3); background:rgba(30,41,59,.5); color:#e2e8f0; cursor:pointer; font-size:.97rem; transition:.12s; }
+      #quiz .opt:hover:not(:disabled) { border-color:var(--indigo); background:rgba(129,140,248,.14); }
+      #quiz .opt.correct { border-color:#22c55e; background:rgba(34,197,94,.18); }
+      #quiz .opt.wrong { border-color:#ef4444; background:rgba(239,68,68,.18); }
+      #quiz .explain { margin-top:1rem; font-size:.9rem; color:#cbd5e1; padding:.75rem .9rem; border-radius:10px; background:rgba(56,189,248,.08); border:1px solid rgba(56,189,248,.22); display:none; }
+      #quiz .nextrow { margin-top:1.1rem; display:flex; justify-content:space-between; align-items:center; }
+      #quiz .nextrow button { padding:.6rem 1.3rem; border-radius:10px; border:0; cursor:pointer; font-weight:700; background:var(--indigo); color:#0b1020; }
+      #quiz .closeb { background:none; border:0; color:#64748b; cursor:pointer; font-size:.9rem; }
+      #quiz .result { text-align:center; }
+      #quiz .result .rank { font-size:1.3rem; color:var(--indigo2); margin-bottom:.4rem; }
+      #quiz .result .big { font-size:2.6rem; font-weight:800; margin:.3rem 0; }
+      #quiz .result p { color:#94a3b8; margin-bottom:1.3rem; }
+      #quiz .playagain { padding:.7rem 1.5rem; border-radius:11px; border:0; cursor:pointer; font-weight:700; background:linear-gradient(135deg,var(--sky),var(--indigo)); color:#0b1020; }
       @media (max-width:560px){ .job-meta{text-align:left} h1{font-size:1.8rem} }
     </style>
     </head>
@@ -92,6 +117,7 @@ data:
             <div class="btns">
               <a class="btn btn-primary" href="#experience">View experience</a>
               <a class="btn btn-ghost" href="resume.pdf" download>Download PDF</a>
+              <button class="btn btn-trivia" onclick="startQuiz()">☁️ Cloud Trivia</button>
             </div>
           </div>
         </header>
@@ -161,6 +187,7 @@ data:
           </div>
         </div></section>
       </div>
+      <div id="quiz"><div class="qcard" id="qcard"></div></div>
       <footer>Served from <strong>lemoncluster</strong> · Cloudflare Tunnel · GitOps with FluxCD · hover a planet ✦</footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -263,6 +290,103 @@ data:
         s.line.material.opacity=s.life/55; if(--s.life<=0){scene.remove(s.line); shooters.splice(i,1);} }
       renderer.render(scene,camera);
     })();
+    </script>
+
+    <script>
+    // ---------- Cloud Trivia: 50 easy questions, 10 random per game ----------
+    const POOL=[
+      {cat:"AWS",q:"Which AWS service provides a managed Kubernetes control plane?",opts:["ECS","EKS","Lambda","Lightsail"],a:1,e:"EKS (Elastic Kubernetes Service) runs and manages Kubernetes for you."},
+      {cat:"AWS",q:"Which AWS service is object storage?",opts:["EBS","EFS","S3","RDS"],a:2,e:"S3 is object storage; EBS/EFS are block/file, RDS is databases."},
+      {cat:"AWS",q:"Which AWS service runs code without provisioning servers?",opts:["EC2","Lambda","EKS","Batch"],a:1,e:"AWS Lambda is serverless functions — you bring code, AWS runs it."},
+      {cat:"AWS",q:"Which AWS service provides resizable virtual server compute?",opts:["S3","EC2","IAM","VPC"],a:1,e:"EC2 (Elastic Compute Cloud) provides virtual machines."},
+      {cat:"AWS",q:"Which AWS service is a managed relational database?",opts:["DynamoDB","RDS","Redshift","S3"],a:1,e:"RDS (Relational Database Service) manages engines like MySQL and PostgreSQL."},
+      {cat:"AWS",q:"Which AWS service is a managed NoSQL database?",opts:["RDS","Aurora","DynamoDB","Athena"],a:2,e:"DynamoDB is AWS's managed key-value / NoSQL database."},
+      {cat:"AWS",q:"Which AWS service provides DNS and domain routing?",opts:["CloudFront","Route 53","API Gateway","VPC"],a:1,e:"Route 53 is AWS's scalable DNS service."},
+      {cat:"AWS",q:"Which AWS service is a content delivery network (CDN)?",opts:["CloudFront","CloudWatch","CloudFormation","Config"],a:0,e:"CloudFront caches content at edge locations worldwide."},
+      {cat:"AWS",q:"Which AWS service manages users, roles, and permissions?",opts:["IAM","S3","EC2","SNS"],a:0,e:"IAM (Identity and Access Management) controls who can do what."},
+      {cat:"AWS",q:"Which AWS resource is your isolated virtual network?",opts:["Subnet","VPC","Security Group","Availability Zone"],a:1,e:"A VPC (Virtual Private Cloud) is your isolated network; subnets live inside it."},
+      {cat:"AWS",q:"Which AWS service is block storage attached to EC2?",opts:["S3","EFS","EBS","Glacier"],a:2,e:"EBS (Elastic Block Store) provides persistent block volumes for EC2."},
+      {cat:"AWS",q:"Which AWS service collects metrics, logs, and alarms?",opts:["CloudTrail","CloudWatch","Config","Inspector"],a:1,e:"CloudWatch handles metrics, logs, dashboards, and alarms."},
+      {cat:"AWS",q:"Which AWS-native service defines infrastructure as templates?",opts:["Terraform","CloudFormation","Ansible","Pulumi"],a:1,e:"CloudFormation is AWS's native IaC using YAML/JSON templates."},
+      {cat:"AWS",q:"Where do you store Docker images in AWS?",opts:["ECR","ECS","EKS","S3"],a:0,e:"ECR (Elastic Container Registry) is AWS's managed container image registry."},
+      {cat:"AWS",q:"Which AWS service is a managed message QUEUE?",opts:["SNS","SQS","EventBridge","Kinesis"],a:1,e:"SQS (Simple Queue Service) is a managed message queue; SNS is pub/sub."},
+      {cat:"AWS",q:"What does 'S3' stand for?",opts:["Simple Storage Service","Secure Storage System","Scalable Server Service","Static Site Server"],a:0,e:"S3 = Simple Storage Service."},
+      {cat:"AWS",q:"Which AWS service securely stores and rotates secrets?",opts:["Secrets Manager","Shield","KMS","GuardDuty"],a:0,e:"Secrets Manager stores/rotates secrets; KMS manages encryption keys."},
+      {cat:"AWS",q:"Which AWS service distributes traffic across targets?",opts:["Route 53","Elastic Load Balancing","Auto Scaling","CloudFront"],a:1,e:"Elastic Load Balancing (ALB/NLB) spreads traffic across healthy targets."},
+      {cat:"AWS",q:"Which is AWS's proprietary container orchestrator?",opts:["EKS","ECS","Fargate","Nomad"],a:1,e:"ECS is AWS's own orchestrator; EKS is managed Kubernetes."},
+      {cat:"AWS",q:"Which AWS option runs containers without managing servers?",opts:["EC2","Fargate","Lightsail","Batch"],a:1,e:"Fargate is serverless compute for containers (works with ECS and EKS)."},
+      {cat:"Kubernetes",q:"What is the smallest deployable unit in Kubernetes?",opts:["Container","Pod","Node","Service"],a:1,e:"A Pod wraps one or more containers and is the smallest deployable unit."},
+      {cat:"Kubernetes",q:"Which component stores all cluster state as key-value data?",opts:["kubelet","etcd","kube-proxy","CoreDNS"],a:1,e:"etcd is the distributed key-value store holding cluster state."},
+      {cat:"Kubernetes",q:"Which component provides in-cluster DNS?",opts:["Ingress","CoreDNS","kube-proxy","Flannel"],a:1,e:"CoreDNS resolves Service and pod names inside the cluster."},
+      {cat:"Kubernetes",q:"Which object ensures a set number of pod replicas run?",opts:["Service","ReplicaSet","ConfigMap","Job"],a:1,e:"A ReplicaSet (managed by a Deployment) keeps N replicas running."},
+      {cat:"Kubernetes",q:"Which object exposes a set of pods as one network endpoint?",opts:["Ingress","Service","Namespace","Volume"],a:1,e:"A Service gives pods a stable virtual IP and DNS name."},
+      {cat:"Kubernetes",q:"Which controller is best for stateful apps needing stable IDs?",opts:["Deployment","StatefulSet","DaemonSet","Job"],a:1,e:"StatefulSet gives stable network identity and storage per pod."},
+      {cat:"Kubernetes",q:"Which controller runs one pod on every node?",opts:["ReplicaSet","DaemonSet","StatefulSet","CronJob"],a:1,e:"A DaemonSet schedules a copy of a pod on each (matching) node."},
+      {cat:"Kubernetes",q:"Which agent on each node actually runs the pods?",opts:["kubectl","kubelet","kubeadm","etcd"],a:1,e:"The kubelet is the node agent that starts and monitors pods."},
+      {cat:"Kubernetes",q:"Which CLI do you use to interact with a cluster?",opts:["docker","kubectl","helm","terraform"],a:1,e:"kubectl is the standard Kubernetes command-line tool."},
+      {cat:"Kubernetes",q:"What is the package manager for Kubernetes?",opts:["Helm","Kustomize","Flux","Argo"],a:0,e:"Helm packages Kubernetes apps as versioned 'charts'."},
+      {cat:"Kubernetes",q:"Which object stores non-sensitive config as key-value pairs?",opts:["Secret","ConfigMap","Volume","Ingress"],a:1,e:"A ConfigMap holds non-confidential configuration data."},
+      {cat:"Kubernetes",q:"Which object stores sensitive data like passwords?",opts:["ConfigMap","Secret","etcd","PVC"],a:1,e:"A Secret stores sensitive values (base64-encoded)."},
+      {cat:"Kubernetes",q:"What virtually partitions a cluster into isolated groups?",opts:["Node","Namespace","Cluster","Context"],a:1,e:"Namespaces divide a cluster into virtual sub-clusters."},
+      {cat:"Kubernetes",q:"Which object routes external HTTP(S) traffic to services?",opts:["Service","Ingress","Endpoint","NodePort"],a:1,e:"An Ingress routes external HTTP/HTTPS to internal Services."},
+      {cat:"Kubernetes",q:"What automatically scales pod count based on CPU/metrics?",opts:["VPA","HPA","Cluster Autoscaler","Karpenter"],a:1,e:"The Horizontal Pod Autoscaler (HPA) scales replicas by metrics."},
+      {cat:"Kubernetes",q:"Which controller manages rolling updates of stateless pods?",opts:["Deployment","Service","ConfigMap","Secret"],a:0,e:"A Deployment manages ReplicaSets and rolling updates."},
+      {cat:"Kubernetes",q:"Fill in: 'kubectl ___ pods' lists pods.",opts:["list","get","show","fetch"],a:1,e:"`kubectl get pods` lists pods in the current namespace."},
+      {cat:"Terraform",q:"Which command PREVIEWS changes without applying them?",opts:["apply","plan","init","import"],a:1,e:"`terraform plan` shows what will change; `apply` makes it happen."},
+      {cat:"Terraform",q:"Which command actually applies infrastructure changes?",opts:["plan","apply","validate","fmt"],a:1,e:"`terraform apply` provisions the planned changes."},
+      {cat:"Terraform",q:"Which command initializes a directory and downloads providers?",opts:["init","setup","start","build"],a:0,e:"`terraform init` prepares the working directory and providers."},
+      {cat:"Terraform",q:"Which command tears down all managed infrastructure?",opts:["delete","destroy","remove","drop"],a:1,e:"`terraform destroy` removes everything Terraform manages."},
+      {cat:"Terraform",q:"What tracks the mapping of config to real resources?",opts:["state file","lock file","plan file","module"],a:0,e:"The state file records what Terraform manages."},
+      {cat:"Terraform",q:"Which language is used to write Terraform?",opts:["YAML","JSON only","HCL","Python"],a:2,e:"Terraform uses HCL (HashiCorp Configuration Language)."},
+      {cat:"Docker",q:"Which file contains instructions to build an image?",opts:["Dockerfile","docker-compose","Makefile","image.yaml"],a:0,e:"A Dockerfile defines the steps to build a container image."},
+      {cat:"Docker",q:"What is a running instance of a Docker image called?",opts:["Layer","Container","Volume","Registry"],a:1,e:"A container is a running instance of an image."},
+      {cat:"Docker",q:"What is the default public Docker image registry?",opts:["GitHub","Docker Hub","ECR","Quay"],a:1,e:"Docker Hub is the default public registry."},
+      {cat:"Networking",q:"What is the default port for HTTPS?",opts:["80","22","443","8080"],a:2,e:"HTTPS uses TCP 443 by default; HTTP uses 80."},
+      {cat:"Networking",q:"What is the default port for SSH?",opts:["21","22","23","25"],a:1,e:"SSH listens on TCP 22 by default."},
+      {cat:"Networking",q:"Which system translates domain names into IP addresses?",opts:["DHCP","DNS","NAT","VPN"],a:1,e:"DNS (Domain Name System) resolves names to IPs."},
+      {cat:"DevOps",q:"In CI/CD, what does 'CI' stand for?",opts:["Continuous Integration","Cloud Infrastructure","Container Image","Central Index"],a:0,e:"CI = Continuous Integration; CD = Continuous Delivery/Deployment."},
+    ];
+    function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+    const N_PER_GAME=10;
+    let game, qi, score, streak, best;
+    const quizEl=document.getElementById('quiz'), qcard=document.getElementById('qcard');
+    function startQuiz(){
+      game = shuffle(POOL.slice()).slice(0,N_PER_GAME).map(it=>{
+        const opts=it.opts.map((text,i)=>({text,correct:i===it.a})); shuffle(opts);
+        return {cat:it.cat,q:it.q,e:it.e,opts,aIdx:opts.findIndex(o=>o.correct)};
+      });
+      qi=0; score=0; streak=0; best=0; quizEl.style.display='grid'; renderQ();
+    }
+    function closeQuiz(){ quizEl.style.display='none'; }
+    function topHtml(){ return `<span>Question <b>${qi+1}</b>/${game.length}</span><span>Score <b>${score}</b> · <span class="streak">🔥 ${streak}</span></span>`; }
+    function renderQ(){
+      const it=game[qi];
+      qcard.innerHTML=`<div class="qtop">${topHtml()}</div>
+        <div class="bar"><div style="width:${(qi/game.length)*100}%"></div></div>
+        <span class="cat">${it.cat}</span><div class="q">${it.q}</div>
+        <div class="opts">${it.opts.map((o,i)=>`<button class="opt" onclick="answerQ(${i})">${o.text}</button>`).join('')}</div>
+        <div class="explain" id="explain"></div>
+        <div class="nextrow"><button class="closeb" onclick="closeQuiz()">Close ✕</button><span id="nextwrap"></span></div>`;
+    }
+    function answerQ(i){
+      const it=game[qi]; const btns=[...qcard.querySelectorAll('.opt')]; btns.forEach(b=>b.disabled=true);
+      btns[it.aIdx].classList.add('correct');
+      if(it.opts[i].correct){ score+=10+streak*2; streak++; best=Math.max(best,streak); }
+      else { btns[i].classList.add('wrong'); streak=0; }
+      const ex=document.getElementById('explain'); ex.textContent=it.e; ex.style.display='block';
+      qcard.querySelector('.qtop').innerHTML=topHtml();
+      const last=qi===game.length-1;
+      document.getElementById('nextwrap').innerHTML=`<button onclick="${last?'resultsQ()':'nextQ()'}">${last?'See results →':'Next →'}</button>`;
+    }
+    function nextQ(){ qi++; renderQ(); }
+    function resultsQ(){
+      const max=game.length*10, pct=score/max;
+      const rank=pct>=0.9?"☁️ Cloud Architect!":pct>=0.7?"🚀 Senior Engineer":pct>=0.4?"🛠️ Solid Practitioner":"🌱 Keep learning!";
+      qcard.innerHTML=`<div class="result"><div class="rank">${rank}</div><div class="big">${score}</div>
+        <p>points · best streak 🔥 ${best}</p>
+        <button class="playagain" onclick="startQuiz()">Play again</button>
+        <button class="playagain" style="background:#334155;color:#e2e8f0;margin-left:.4rem" onclick="closeQuiz()">Close</button></div>`;
+    }
     </script>
     </body>
     </html>
