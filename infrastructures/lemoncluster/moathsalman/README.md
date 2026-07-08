@@ -99,8 +99,8 @@ All under `infrastructures/lemoncluster/moathsalman/`:
 | `nginx-deployment.yaml` | `nginxinc/nginx-unprivileged` (non-root, port 8080), mounts the ConfigMap read-only |
 | `nginx-service.yaml` | ClusterIP, port 80 → targetPort 8080. **Name must match exactly** what's configured as the tunnel's public-hostname target |
 | `cloudflared-sealedsecret.yaml` | Tunnel token, sealed — never committed in plaintext |
-| `cloudflared-deployment.yaml` | `cloudflare/cloudflared`, 2 replicas, `tunnel --no-autoupdate run`, token via `env.valueFrom.secretKeyRef`, no Service (outbound-only) |
-| `networkpolicy.yaml` | Restricts cloudflared's **egress** to only DNS (kube-system, port 53) + the nginx Service (port 8080) |
+| `cloudflared-deployment.yaml` | `cloudflare/cloudflared`, 2 replicas, `tunnel --no-autoupdate run`, token via `env.valueFrom.secretKeyRef`, `TUNNEL_TRANSPORT_PROTOCOL=http2` (see Issues below), no Service (outbound-only) |
+| `networkpolicy.yaml` | Restricts cloudflared's **egress** to DNS (kube-system, port 53), the nginx Service (port 8080), and Cloudflare's edge (TCP/UDP 7844, TCP 443) — see Issues below |
 | `kustomization.yaml` | Lists all of the above for Flux/Kustomize |
 
 **Why `nginx-unprivileged`, not stock `nginx`:** stock nginx binds port 80,
@@ -112,9 +112,12 @@ access by default. Without this policy, a compromised token/image could
 let it pivot to *any* other pod on the cluster. Restricting egress to just
 DNS + the one Service caps the blast radius to "can reach one internal
 static-site Service," regardless of what happens to the tunnel itself.
-Note the policy only restricts *cluster-internal* egress — the outbound
-connection to Cloudflare's edge is a separate concern, governed by normal
-node/cluster network routing, not by this NetworkPolicy.
+**Important nuance:** a Kubernetes NetworkPolicy egress rule governs **all**
+egress from the selected pods — including internet-bound traffic, not just
+cluster-internal pod-to-pod traffic. So cloudflared's own outbound connection
+to Cloudflare's edge (TCP/UDP 7844, TCP 443) is *not* a separate concern —
+it must be explicitly allowed in this policy too, or the tunnel can't
+register. This was missed on the first pass; see "Issues encountered" below.
 
 **Sealing the token:**
 
@@ -212,6 +215,53 @@ had to be fixed first:
 - url: https://bitnami-labs.github.io/sealed-secrets
 + url: https://bitnami.github.io/sealed-secrets
 ```
+
+**The NetworkPolicy blocked cloudflared from reaching Cloudflare's edge.**
+After deploy, both cloudflared pods logged a continuous loop of
+`Failed to dial a quic connection` and `dial tcp <edge-ip>:7844: i/o timeout`
+against every edge IP — the tunnel never registered. Root cause: the
+original `networkpolicy.yaml` only allowed egress to DNS + the nginx Service.
+Because a NetworkPolicy egress rule applies to **all** traffic leaving the
+selected pods (internet included, not just pod-to-pod), the connection
+cloudflared needs to Cloudflare's edge was implicitly denied. Fix — add an
+egress rule for Cloudflare's edge ports, to any destination (Cloudflare's
+edge IPs aren't fixed, so no `to:` selector):
+
+```yaml
+# networkpolicy.yaml — third egress rule
+- ports:
+    - protocol: TCP
+      port: 7844   # tunnel control/data (QUIC + http2 fallback)
+    - protocol: UDP
+      port: 7844   # QUIC
+    - protocol: TCP
+      port: 443    # http2 fallback / API
+```
+
+This keeps the original intent intact — cloudflared still can't reach any
+other in-cluster pod/Service — it just gains the one external path it needs.
+
+**QUIC (UDP 7844) was still blocked upstream — pinned transport to http2.**
+After the egress rule above, TCP 7844 started working and the tunnel *did*
+register over the http2 fallback — but only after ~1–2 minutes of QUIC
+timeouts on each pod start, and the logs stayed noisy with
+`Failed to dial a quic connection`. The remaining block was **not** the
+NetworkPolicy (Cilium was correctly allowing UDP 7844) — it's the
+NAT/router upstream of the cluster dropping outbound UDP. cloudflared runs
+perfectly fine on http2, so rather than fight the network, the deployment
+now pins the transport explicitly:
+
+```yaml
+# cloudflared-deployment.yaml — added to the container's env
+- name: TUNNEL_TRANSPORT_PROTOCOL
+  value: http2
+```
+
+cloudflared then skips QUIC entirely and registers in seconds
+(`SUMMARY: Environment is healthy. cloudflared will use 'http2' as primary
+protocol.`). If this cluster is ever moved behind a network that allows
+outbound UDP 7844, dropping this env var restores QUIC (marginally better
+latency); for the current home network, http2 is the correct steady state.
 
 ## Follow-ups / hardening
 
