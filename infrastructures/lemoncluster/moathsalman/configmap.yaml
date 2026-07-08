@@ -12,13 +12,14 @@ data:
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Moath Salman — Platform Engineer</title>
     <style>
-      :root { --sky:#38bdf8; --indigo:#818cf8; --indigo2:#a5b4fc; --text:#e2e8f0; --muted:#94a3b8; --card:rgba(15,23,42,.62); }
+      :root { --sky:#38bdf8; --indigo:#818cf8; --indigo2:#a5b4fc; --text:#e2e8f0; --muted:#94a3b8; --card:rgba(8,12,30,.6); }
       * { box-sizing:border-box; margin:0; padding:0; }
       html { scroll-behavior:smooth; }
-      body { background:#020617; color:var(--text); line-height:1.55;
+      body { background:#01030c; color:var(--text); line-height:1.55;
         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
-      #bg { position:fixed; inset:0; z-index:0; }
-      .content { position:relative; z-index:1; max-width:960px; margin:0 auto; padding:0 1.25rem; }
+      #bg { position:fixed; inset:0; z-index:0; cursor:crosshair; }
+      .content { position:relative; z-index:1; max-width:960px; margin:0 auto; padding:0 1.25rem; pointer-events:none; }
+      .card, a, button, .content .chip { pointer-events:auto; }
       a { color:var(--indigo2); text-decoration:none; }
       a:hover { color:#c7d2fe; }
       .card { background:var(--card); backdrop-filter:blur(12px);
@@ -48,35 +49,33 @@ data:
       section h2 { font-size:1.35rem; margin-bottom:1rem; color:#fff; display:flex; align-items:center; gap:.6rem; }
       section h2::before { content:""; width:6px; height:22px; border-radius:3px; background:linear-gradient(var(--sky),var(--indigo)); display:inline-block; }
       .summary p { color:#cbd5e1; }
-      /* SKILLS */
-      .skill-group { margin-bottom:1rem; }
-      .skill-group:last-child { margin-bottom:0; }
+      .skill-group { margin-bottom:1rem; } .skill-group:last-child { margin-bottom:0; }
       .skill-label { font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; color:var(--indigo2); margin-bottom:.5rem; font-weight:600; }
       .chips { display:flex; flex-wrap:wrap; gap:.45rem; }
-      .chip { padding:.32rem .7rem; border-radius:8px; font-size:.85rem; color:#e2e8f0;
-        background:rgba(56,189,248,.1); border:1px solid rgba(56,189,248,.25); }
-      /* EXPERIENCE */
-      .job { margin-bottom:1.6rem; }
-      .job:last-child { margin-bottom:0; }
+      .chip { padding:.32rem .7rem; border-radius:8px; font-size:.85rem; color:#e2e8f0; background:rgba(56,189,248,.1); border:1px solid rgba(56,189,248,.25); }
+      .job { margin-bottom:1.6rem; } .job:last-child { margin-bottom:0; }
       .job-head { display:flex; justify-content:space-between; flex-wrap:wrap; gap:.2rem; margin-bottom:.5rem; }
-      .job-title { font-weight:700; font-size:1.05rem; }
-      .job-title .co { color:var(--indigo2); }
+      .job-title { font-weight:700; font-size:1.05rem; } .job-title .co { color:var(--indigo2); }
       .job-meta { color:var(--muted); font-size:.88rem; text-align:right; }
       .job ul { list-style:none; padding:0; }
       .job li { position:relative; padding-left:1.2rem; margin-bottom:.5rem; color:#cbd5e1; font-size:.94rem; }
       .job li::before { content:"▸"; position:absolute; left:0; color:var(--sky); }
-      /* CERTS */
       .certs { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:.7rem; }
       .cert { padding:.7rem .9rem; border-radius:10px; background:rgba(129,140,248,.08); border:1px solid rgba(129,140,248,.22); font-size:.9rem; }
       footer { text-align:center; color:#64748b; font-size:.85rem; padding:2.5rem 1rem 3rem; position:relative; z-index:1; }
       footer strong { color:var(--muted); }
+      /* solar tooltip */
+      #tip { position:fixed; z-index:5; padding:.4rem .75rem; border-radius:9px; font-size:.85rem; font-weight:700;
+        background:rgba(129,140,248,.96); color:#0b1020; pointer-events:none; opacity:0; transition:opacity .12s;
+        transform:translate(-50%,-150%); white-space:nowrap; box-shadow:0 8px 24px rgba(0,0,0,.4); }
+      #tip small { display:block; font-weight:500; color:#1e1b4b; opacity:.8; }
       @media (max-width:560px){ .job-meta{text-align:left} h1{font-size:1.8rem} }
     </style>
     </head>
     <body>
       <canvas id="bg"></canvas>
+      <div id="tip"></div>
       <div class="content">
-        <!-- HERO -->
         <header class="hero">
           <div class="card">
             <div class="avatar"><img src="photo.jpg" alt="Moath Salman"></div>
@@ -97,128 +96,173 @@ data:
           </div>
         </header>
 
-        <!-- SUMMARY -->
-        <section class="summary">
-          <div class="card">
-            <h2>Professional Summary</h2>
-            <p>Platform Engineer with 5+ years of experience building and operating AWS-based Kubernetes (EKS) platforms,
-            automating infrastructure with Terraform, and improving production reliability through observability and secure
-            access controls. Increased engineering delivery speed by approximately 40% by consolidating multiple CI/CD
-            pipelines into a single GitHub Actions workflow supporting 8+ services. Work closely with development teams to
-            simplify deployments, improve delivery workflows, and maintain resilient production systems. Experienced with
-            Istio service mesh, GitOps delivery (FluxCD, ArgoCD), and full-stack monitoring with Prometheus, Grafana, and Thanos.</p>
-          </div>
-        </section>
+        <section class="summary"><div class="card">
+          <h2>Professional Summary</h2>
+          <p>Platform Engineer with 5+ years of experience building and operating AWS-based Kubernetes (EKS) platforms,
+          automating infrastructure with Terraform, and improving production reliability through observability and secure
+          access controls. Increased engineering delivery speed by approximately 40% by consolidating multiple CI/CD
+          pipelines into a single GitHub Actions workflow supporting 8+ services. Work closely with development teams to
+          simplify deployments, improve delivery workflows, and maintain resilient production systems. Experienced with
+          Istio service mesh, GitOps delivery (FluxCD, ArgoCD), and full-stack monitoring with Prometheus, Grafana, and Thanos.</p>
+        </div></section>
 
-        <!-- SKILLS -->
-        <section>
-          <div class="card">
-            <h2>Skills</h2>
-            <div class="skill-group"><div class="skill-label">Cloud Platforms &amp; Infra</div><div class="chips">
-              <span class="chip">AWS (EKS, IAM, ALB/NLB)</span><span class="chip">Azure (AKS, Azure AD, ACR)</span></div></div>
-            <div class="skill-group"><div class="skill-label">Containers &amp; Orchestration</div><div class="chips">
-              <span class="chip">Kubernetes</span><span class="chip">Helm</span><span class="chip">Docker</span><span class="chip">Karpenter</span><span class="chip">Kustomize</span><span class="chip">NGINX Ingress</span><span class="chip">HPA</span><span class="chip">Rancher</span></div></div>
-            <div class="skill-group"><div class="skill-label">Service Mesh &amp; Networking</div><div class="chips">
-              <span class="chip">Istio (Gateways, VirtualService, mTLS)</span><span class="chip">Envoy</span><span class="chip">Kubernetes Gateway API</span></div></div>
-            <div class="skill-group"><div class="skill-label">Infrastructure as Code</div><div class="chips">
-              <span class="chip">Terraform</span></div></div>
-            <div class="skill-group"><div class="skill-label">CI/CD &amp; GitOps</div><div class="chips">
-              <span class="chip">GitHub Actions</span><span class="chip">GitLab CI</span><span class="chip">ArgoCD</span><span class="chip">FluxCD</span></div></div>
-            <div class="skill-group"><div class="skill-label">Monitoring &amp; Observability</div><div class="chips">
-              <span class="chip">Prometheus</span><span class="chip">Grafana</span><span class="chip">Thanos</span><span class="chip">Fluentd</span><span class="chip">Elasticsearch</span><span class="chip">Kibana</span><span class="chip">CloudWatch</span></div></div>
-            <div class="skill-group"><div class="skill-label">Security &amp; Secrets</div><div class="chips">
-              <span class="chip">Cert-Manager</span><span class="chip">AWS Secrets Manager</span><span class="chip">Secrets Store CSI Driver</span><span class="chip">IRSA</span><span class="chip">External DNS</span></div></div>
-            <div class="skill-group"><div class="skill-label">Databases</div><div class="chips">
-              <span class="chip">MongoDB</span><span class="chip">DynamoDB</span><span class="chip">MySQL</span></div></div>
-            <div class="skill-group"><div class="skill-label">Scripting &amp; Automation</div><div class="chips">
-              <span class="chip">Linux</span><span class="chip">Bash</span><span class="chip">Python</span></div></div>
-            <div class="skill-group"><div class="skill-label">Platform &amp; Operations</div><div class="chips">
-              <span class="chip">SLA/SLO</span><span class="chip">Incident Response</span><span class="chip">API Systems</span><span class="chip">Jira</span><span class="chip">Confluence</span></div></div>
-            <div class="skill-group"><div class="skill-label">AI &amp; Developer Acceleration</div><div class="chips">
-              <span class="chip">GitHub Copilot</span><span class="chip">Claude</span><span class="chip">Claude Code</span><span class="chip">ChatGPT</span><span class="chip">Cursor</span><span class="chip">LLMs</span><span class="chip">Prompt Engineering</span></div></div>
-          </div>
-        </section>
+        <section><div class="card">
+          <h2>Skills</h2>
+          <div class="skill-group"><div class="skill-label">Cloud Platforms &amp; Infra</div><div class="chips"><span class="chip">AWS (EKS, IAM, ALB/NLB)</span><span class="chip">Azure (AKS, Azure AD, ACR)</span></div></div>
+          <div class="skill-group"><div class="skill-label">Containers &amp; Orchestration</div><div class="chips"><span class="chip">Kubernetes</span><span class="chip">Helm</span><span class="chip">Docker</span><span class="chip">Karpenter</span><span class="chip">Kustomize</span><span class="chip">NGINX Ingress</span><span class="chip">HPA</span><span class="chip">Rancher</span></div></div>
+          <div class="skill-group"><div class="skill-label">Service Mesh &amp; Networking</div><div class="chips"><span class="chip">Istio (Gateways, VirtualService, mTLS)</span><span class="chip">Envoy</span><span class="chip">Kubernetes Gateway API</span></div></div>
+          <div class="skill-group"><div class="skill-label">Infrastructure as Code</div><div class="chips"><span class="chip">Terraform</span></div></div>
+          <div class="skill-group"><div class="skill-label">CI/CD &amp; GitOps</div><div class="chips"><span class="chip">GitHub Actions</span><span class="chip">GitLab CI</span><span class="chip">ArgoCD</span><span class="chip">FluxCD</span></div></div>
+          <div class="skill-group"><div class="skill-label">Monitoring &amp; Observability</div><div class="chips"><span class="chip">Prometheus</span><span class="chip">Grafana</span><span class="chip">Thanos</span><span class="chip">Fluentd</span><span class="chip">Elasticsearch</span><span class="chip">Kibana</span><span class="chip">CloudWatch</span></div></div>
+          <div class="skill-group"><div class="skill-label">Security &amp; Secrets</div><div class="chips"><span class="chip">Cert-Manager</span><span class="chip">AWS Secrets Manager</span><span class="chip">Secrets Store CSI Driver</span><span class="chip">IRSA</span><span class="chip">External DNS</span></div></div>
+          <div class="skill-group"><div class="skill-label">Databases</div><div class="chips"><span class="chip">MongoDB</span><span class="chip">DynamoDB</span><span class="chip">MySQL</span></div></div>
+          <div class="skill-group"><div class="skill-label">Scripting &amp; Automation</div><div class="chips"><span class="chip">Linux</span><span class="chip">Bash</span><span class="chip">Python</span></div></div>
+          <div class="skill-group"><div class="skill-label">Platform &amp; Operations</div><div class="chips"><span class="chip">SLA/SLO</span><span class="chip">Incident Response</span><span class="chip">API Systems</span><span class="chip">Jira</span><span class="chip">Confluence</span></div></div>
+          <div class="skill-group"><div class="skill-label">AI &amp; Developer Acceleration</div><div class="chips"><span class="chip">GitHub Copilot</span><span class="chip">Claude</span><span class="chip">Claude Code</span><span class="chip">ChatGPT</span><span class="chip">Cursor</span><span class="chip">LLMs</span><span class="chip">Prompt Engineering</span></div></div>
+        </div></section>
 
-        <!-- EXPERIENCE -->
-        <section id="experience">
-          <div class="card">
-            <h2>Experience</h2>
-            <div class="job">
-              <div class="job-head">
-                <div class="job-title">Platform Engineer · <span class="co">Egencia, American Express</span></div>
-                <div class="job-meta">Chicago, IL (Remote)<br>May 2023 – Present</div>
-              </div>
-              <ul>
-                <li>Standardized deployment workflows across 8+ services by consolidating fragmented CI/CD pipelines into a unified GitHub Actions system, reducing release complexity and improving engineering delivery speed by 40%.</li>
-                <li>Built reusable Terraform modules to provision EKS clusters, IAM roles, and remote state infrastructure, reducing full environment setup time from multiple days down to under 2 hours.</li>
-                <li>Owned operation and reliability of AWS EKS clusters supporting multiple services across staging and production, with Karpenter handling dynamic node autoscaling and capacity optimization.</li>
-                <li>Deployed Istio service mesh with ingress gateways and VirtualServices, with Cert-Manager for automated TLS certificates.</li>
-                <li>Implemented full-stack monitoring with Prometheus, Grafana, and Thanos across Kubernetes clusters, creating dashboards and alerts to proactively detect and resolve performance issues.</li>
-                <li>Managed GitOps-driven delivery using FluxCD and Kustomize, enabling developer-triggered deployments via pull requests.</li>
-                <li>Integrated AWS Secrets Manager with Kubernetes using IRSA and the Secrets Store CSI driver, eliminating all hardcoded secrets.</li>
-                <li>Diagnosed and resolved production issues using Kubernetes tooling, CloudWatch, and centralized logging with Fluentd, Elasticsearch, and Kibana to drive measurable improvements in system reliability.</li>
-                <li>Accelerated platform workflows using GitHub Copilot for Terraform, Claude Code for Kubernetes troubleshooting, and Claude for project delivery, with Confluence MCP automation to reduce documentation overhead.</li>
-              </ul>
-            </div>
-            <div class="job">
-              <div class="job-head">
-                <div class="job-title">DevOps Engineer · <span class="co">Abbott</span></div>
-                <div class="job-meta">Chicago, IL (On-Site)<br>Jun 2020 – Mar 2023</div>
-              </div>
-              <ul>
-                <li>Deployed and managed containerized services on AWS EKS using Helm charts and GitLab CI pipelines for consistent delivery.</li>
-                <li>Supported and improved staging release processes for 5+ backend services, ensuring consistent and reliable deployments.</li>
-                <li>Built and deployed a Node.js/React application to validate API connectivity and database integration in containers.</li>
-                <li>Implemented secure infrastructure access using IAM policies and bastion hosts, preventing public exposure of internal systems.</li>
-                <li>Automated deployment validation and environment checks using Bash and Python scripts, significantly reducing manual effort.</li>
-                <li>Collaborated with backend engineers to resolve API failures, database issues, and container runtime errors before production.</li>
-                <li>Supported application deployments across AWS and Azure cloud environments, managing containerized workloads and API services.</li>
-              </ul>
-            </div>
+        <section id="experience"><div class="card">
+          <h2>Experience</h2>
+          <div class="job">
+            <div class="job-head"><div class="job-title">Platform Engineer · <span class="co">Egencia, American Express</span></div><div class="job-meta">Chicago, IL (Remote)<br>May 2023 – Present</div></div>
+            <ul>
+              <li>Standardized deployment workflows across 8+ services by consolidating fragmented CI/CD pipelines into a unified GitHub Actions system, reducing release complexity and improving engineering delivery speed by 40%.</li>
+              <li>Built reusable Terraform modules to provision EKS clusters, IAM roles, and remote state infrastructure, reducing full environment setup time from multiple days down to under 2 hours.</li>
+              <li>Owned operation and reliability of AWS EKS clusters supporting multiple services across staging and production, with Karpenter handling dynamic node autoscaling and capacity optimization.</li>
+              <li>Deployed Istio service mesh with ingress gateways and VirtualServices, with Cert-Manager for automated TLS certificates.</li>
+              <li>Implemented full-stack monitoring with Prometheus, Grafana, and Thanos across Kubernetes clusters, creating dashboards and alerts to proactively detect and resolve performance issues.</li>
+              <li>Managed GitOps-driven delivery using FluxCD and Kustomize, enabling developer-triggered deployments via pull requests.</li>
+              <li>Integrated AWS Secrets Manager with Kubernetes using IRSA and the Secrets Store CSI driver, eliminating all hardcoded secrets.</li>
+              <li>Diagnosed and resolved production issues using Kubernetes tooling, CloudWatch, and centralized logging with Fluentd, Elasticsearch, and Kibana to drive measurable improvements in system reliability.</li>
+              <li>Accelerated platform workflows using GitHub Copilot for Terraform, Claude Code for Kubernetes troubleshooting, and Claude for project delivery, with Confluence MCP automation to reduce documentation overhead.</li>
+            </ul>
           </div>
-        </section>
+          <div class="job">
+            <div class="job-head"><div class="job-title">DevOps Engineer · <span class="co">Abbott</span></div><div class="job-meta">Chicago, IL (On-Site)<br>Jun 2020 – Mar 2023</div></div>
+            <ul>
+              <li>Deployed and managed containerized services on AWS EKS using Helm charts and GitLab CI pipelines for consistent delivery.</li>
+              <li>Supported and improved staging release processes for 5+ backend services, ensuring consistent and reliable deployments.</li>
+              <li>Built and deployed a Node.js/React application to validate API connectivity and database integration in containers.</li>
+              <li>Implemented secure infrastructure access using IAM policies and bastion hosts, preventing public exposure of internal systems.</li>
+              <li>Automated deployment validation and environment checks using Bash and Python scripts, significantly reducing manual effort.</li>
+              <li>Collaborated with backend engineers to resolve API failures, database issues, and container runtime errors before production.</li>
+              <li>Supported application deployments across AWS and Azure cloud environments, managing containerized workloads and API services.</li>
+            </ul>
+          </div>
+        </div></section>
 
-        <!-- CERTS -->
-        <section>
-          <div class="card">
-            <h2>Education &amp; Certifications</h2>
-            <div class="certs">
-              <div class="cert">AWS Certified Solutions Architect – Associate (SAA-C03)</div>
-              <div class="cert">Certified Kubernetes Administrator (CKA)</div>
-              <div class="cert">Certified Kubernetes Application Developer (CKAD)</div>
-              <div class="cert">HashiCorp Certified: Terraform Associate</div>
-            </div>
+        <section><div class="card">
+          <h2>Education &amp; Certifications</h2>
+          <div class="certs">
+            <div class="cert">AWS Certified Solutions Architect – Associate (SAA-C03)</div>
+            <div class="cert">Certified Kubernetes Administrator (CKA)</div>
+            <div class="cert">Certified Kubernetes Application Developer (CKAD)</div>
+            <div class="cert">HashiCorp Certified: Terraform Associate</div>
           </div>
-        </section>
+        </div></section>
       </div>
-      <footer>Served from <strong>lemoncluster</strong> · Cloudflare Tunnel · GitOps with FluxCD</footer>
+      <footer>Served from <strong>lemoncluster</strong> · Cloudflare Tunnel · GitOps with FluxCD · hover a planet ✦</footer>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 1, 1000);
-      camera.position.z = 400;
-      const renderer = new THREE.WebGLRenderer({canvas:document.getElementById('bg'), antialias:true});
-      renderer.setSize(innerWidth, innerHeight); renderer.setClearColor(0x020617, 1);
-      const N = 1500;
-      function field(scale, color, size, op){
-        const g = new THREE.BufferGeometry(), p = new Float32Array(N*3);
-        for (let i=0;i<N*3;i++) p[i] = (Math.random()-0.5)*1200;
-        g.setAttribute('position', new THREE.BufferAttribute(p,3));
-        const m = new THREE.PointsMaterial({color, size, transparent:true, opacity:op});
-        const pts = new THREE.Points(g, m); pts.scale.set(scale,scale,scale); scene.add(pts); return pts;
-      }
-      const a = field(1, 0x38bdf8, 2.4, .8), b = field(1.5, 0x818cf8, 1.6, .5);
-      let mx=0, my=0;
-      addEventListener('mousemove', e => { mx=e.clientX/innerWidth-0.5; my=e.clientY/innerHeight-0.5; });
-      addEventListener('resize', () => { camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
-      (function loop(){
-        requestAnimationFrame(loop);
-        a.rotation.y += 0.0008; a.rotation.x += 0.0004; b.rotation.y -= 0.0006;
-        camera.position.x += (mx*120 - camera.position.x)*0.03;
-        camera.position.y += (-my*120 - camera.position.y)*0.03;
-        camera.lookAt(scene.position);
-        renderer.render(scene, camera);
-      })();
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,1,8000);
+    camera.position.set(0,230,560); camera.lookAt(0,0,0);
+    const renderer=new THREE.WebGLRenderer({canvas:bg,antialias:true});
+    renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setClearColor(0x01030c,1);
+
+    function cvs(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return [c,c.getContext('2d')]; }
+    function earthTex(){ const [c,x]=cvs(256,128); x.fillStyle='#12468f'; x.fillRect(0,0,256,128);
+      x.fillStyle='#2e8b57'; for(let i=0;i<26;i++){x.beginPath();x.ellipse(Math.random()*256,Math.random()*128,8+Math.random()*34,6+Math.random()*20,Math.random(),0,7);x.fill();}
+      x.fillStyle='#3fa76a'; for(let i=0;i<14;i++){x.beginPath();x.ellipse(Math.random()*256,Math.random()*128,5+Math.random()*16,4+Math.random()*10,0,0,7);x.fill();}
+      x.fillStyle='rgba(255,255,255,.55)'; for(let i=0;i<22;i++){x.beginPath();x.ellipse(Math.random()*256,Math.random()*128,6+Math.random()*20,3+Math.random()*7,0,0,7);x.fill();}
+      return new THREE.CanvasTexture(c); }
+    function bandTex(cols){ const [c,x]=cvs(128,128); const n=cols.length; for(let y=0;y<128;y++){ const col=cols[Math.floor((y/128)*n)%n]; x.fillStyle=col; x.fillRect(0,y,128,1);}
+      x.globalAlpha=.25; for(let i=0;i<40;i++){x.fillStyle=cols[Math.floor(Math.random()*n)];x.fillRect(0,Math.random()*128,128,1+Math.random()*2);} x.globalAlpha=1; return new THREE.CanvasTexture(c); }
+    function mottleTex(base,spot){ const [c,x]=cvs(128,128); x.fillStyle=base; x.fillRect(0,0,128,128);
+      x.fillStyle=spot; for(let i=0;i<40;i++){x.beginPath();x.arc(Math.random()*128,Math.random()*128,2+Math.random()*9,0,7);x.fill();} return new THREE.CanvasTexture(c); }
+
+    function makeGalaxy(count,radius,branches,spin,rnd,pow,cIn,cOut,size,op){
+      const pos=new Float32Array(count*3),col=new Float32Array(count*3);
+      const a=new THREE.Color(cIn),b=new THREE.Color(cOut);
+      for(let i=0;i<count;i++){const i3=i*3;
+        const r=Math.pow(Math.random(),1.5)*radius, branch=(i%branches)/branches*Math.PI*2, s=r*spin;
+        const rx=Math.pow(Math.random(),pow)*(Math.random()<.5?1:-1)*rnd*r, ry=Math.pow(Math.random(),pow)*(Math.random()<.5?1:-1)*rnd*r*0.3, rz=Math.pow(Math.random(),pow)*(Math.random()<.5?1:-1)*rnd*r;
+        pos[i3]=Math.cos(branch+s)*r+rx; pos[i3+1]=ry; pos[i3+2]=Math.sin(branch+s)*r+rz;
+        const c=a.clone().lerp(b,r/radius); col[i3]=c.r;col[i3+1]=c.g;col[i3+2]=c.b; }
+      const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.setAttribute('color',new THREE.BufferAttribute(col,3));
+      return new THREE.Points(g,new THREE.PointsMaterial({size,depthWrite:false,vertexColors:true,blending:THREE.AdditiveBlending,transparent:true,opacity:op}));
+    }
+    const milky=makeGalaxy(9000,2600,5,0.0016,0.32,2.4,0xfff0d0,0x5577ff,4,0.5);
+    milky.rotation.x=0.9; milky.rotation.z=0.35; milky.position.set(-400,-600,-1800); scene.add(milky);
+    const sc=3000,sp=new Float32Array(sc*3);
+    for(let i=0;i<sc*3;i++) sp[i]=(Math.random()-0.5)*6000;
+    const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+    scene.add(new THREE.Points(sg,new THREE.PointsMaterial({size:1.5,color:0xbcccff,transparent:true,opacity:.75})));
+
+    scene.add(new THREE.AmbientLight(0x223355,0.35));
+    scene.add(new THREE.PointLight(0xfff0c0,3,4000));
+    const sun=new THREE.Mesh(new THREE.SphereGeometry(34,40,40),new THREE.MeshBasicMaterial({color:0xffcf5a}));
+    sun.userData={name:'The Sun',skill:'Core Platform'}; scene.add(sun);
+    function glowTex(){ const [c,x]=cvs(256,256); const gr=x.createRadialGradient(128,128,0,128,128,128);
+      gr.addColorStop(0,'rgba(255,240,190,1)');gr.addColorStop(.3,'rgba(255,200,110,.7)');gr.addColorStop(1,'rgba(255,170,60,0)');
+      x.fillStyle=gr;x.fillRect(0,0,256,256); return new THREE.CanvasTexture(c); }
+    const sunGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex(),blending:THREE.AdditiveBlending,transparent:true,depthWrite:false}));
+    sunGlow.scale.set(150,150,1); scene.add(sunGlow);
+
+    const PL=[
+      {name:'Mercury',skill:'Bash',    rad:66, size:3,  tex:mottleTex('#9a8478','#6b5b52'), spd:1.6},
+      {name:'Venus',  skill:'Docker',  rad:92, size:5,  tex:mottleTex('#d9a066','#c98a4b'), spd:1.15},
+      {name:'Earth',  skill:'Kubernetes',rad:122,size:6.2,tex:earthTex(), spd:1.0, moon:true},
+      {name:'Mars',   skill:'Terraform',rad:152,size:4.4,tex:mottleTex('#c1440e','#8a2f0a'), spd:0.8},
+      {name:'Jupiter',skill:'AWS',     rad:214,size:16, tex:bandTex(['#c9a97e','#a5764c','#e0c9a6','#8a5a35']), spd:0.44},
+      {name:'Saturn', skill:'Istio',   rad:276,size:13, tex:bandTex(['#e6d3a3','#c9b483','#f0e3bf']), spd:0.31, ring:true},
+      {name:'Uranus', skill:'Prometheus',rad:326,size:9,tex:mottleTex('#8fe0e6','#7fd0d6'), spd:0.22},
+      {name:'Neptune',skill:'FluxCD',  rad:372,size:9,  tex:mottleTex('#3b6fe0','#2f5bc0'), spd:0.17},
+    ];
+    const planets=[]; const hoverable=[sun];
+    const orbitMat=new THREE.LineBasicMaterial({color:0x3b4a66,transparent:true,opacity:.4});
+    PL.forEach(p=>{
+      const mesh=new THREE.Mesh(new THREE.SphereGeometry(p.size,32,32),new THREE.MeshStandardMaterial({map:p.tex,roughness:.85,metalness:.05}));
+      mesh.userData={name:p.name,skill:p.skill}; scene.add(mesh); hoverable.push(mesh);
+      const pts=[]; for(let a=0;a<=64;a++){const t=a/64*Math.PI*2; pts.push(new THREE.Vector3(Math.cos(t)*p.rad,0,Math.sin(t)*p.rad));}
+      scene.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),orbitMat));
+      if(p.ring){ const rg=new THREE.RingGeometry(p.size*1.4,p.size*2.3,48); rg.rotateX(Math.PI/2);
+        mesh.add(new THREE.Mesh(rg,new THREE.MeshBasicMaterial({color:0xd9c9a0,side:THREE.DoubleSide,transparent:true,opacity:.7}))); mesh.rotation.z=0.4; }
+      let moon=null;
+      if(p.moon){ moon=new THREE.Mesh(new THREE.SphereGeometry(1.8,16,16),new THREE.MeshStandardMaterial({color:0xbfc3c9,roughness:1})); scene.add(moon); }
+      planets.push({...p,mesh,moon,angle:Math.random()*Math.PI*2,moonAngle:0});
+    });
+
+    const ray=new THREE.Raycaster(), mouse=new THREE.Vector2(); let mx=0,my=0;
+    const tip=document.getElementById('tip'), bgc=document.getElementById('bg');
+    addEventListener('mousemove',e=>{ mx=e.clientX/innerWidth-0.5; my=e.clientY/innerHeight-0.5;
+      mouse.x=(e.clientX/innerWidth)*2-1; mouse.y=-(e.clientY/innerHeight)*2+1;
+      ray.setFromCamera(mouse,camera); const hit=ray.intersectObjects(hoverable)[0];
+      if(hit){ const d=hit.object.userData; tip.innerHTML=d.name+'<small>'+d.skill+'</small>'; tip.style.left=e.clientX+'px'; tip.style.top=e.clientY+'px'; tip.style.opacity=1; bgc.style.cursor='pointer'; }
+      else { tip.style.opacity=0; bgc.style.cursor='crosshair'; }
+    });
+    const shooters=[];
+    bgc.addEventListener('click',()=>{
+      const start=new THREE.Vector3((Math.random()-0.5)*1400,300+Math.random()*300,(Math.random()-0.5)*400-200);
+      const vel=new THREE.Vector3(-1-Math.random(),-0.5-Math.random()*0.4,0.2).normalize().multiplyScalar(18);
+      const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([start.clone(),start.clone()]),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:1}));
+      scene.add(line); shooters.push({line,pos:start,vel,life:55});
+    });
+
+    let t=0;
+    addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+    (function loop(){ requestAnimationFrame(loop); t+=0.004;
+      milky.rotation.y+=0.0002; sun.rotation.y+=0.002;
+      planets.forEach(p=>{ p.angle+=0.004*p.spd; const x=Math.cos(p.angle)*p.rad, z=Math.sin(p.angle)*p.rad;
+        p.mesh.position.set(x,0,z); p.mesh.rotation.y+=0.01;
+        if(p.moon){ p.moonAngle+=0.05; p.moon.position.set(x+Math.cos(p.moonAngle)*14,Math.sin(p.moonAngle)*4,z+Math.sin(p.moonAngle)*14); } });
+      camera.position.x+=((mx*160)-camera.position.x)*0.02; camera.position.y+=((230-my*120)-camera.position.y)*0.02; camera.lookAt(0,0,0);
+      for(let i=shooters.length-1;i>=0;i--){const s=shooters[i]; s.pos.add(s.vel);
+        s.line.geometry.setFromPoints([s.pos.clone(),s.pos.clone().sub(s.vel.clone().multiplyScalar(2.5))]);
+        s.line.material.opacity=s.life/55; if(--s.life<=0){scene.remove(s.line); shooters.splice(i,1);} }
+      renderer.render(scene,camera);
+    })();
     </script>
     </body>
     </html>
