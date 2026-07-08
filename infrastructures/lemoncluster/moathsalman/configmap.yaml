@@ -94,18 +94,40 @@ data:
       #quiz .result .big { font-size:2.6rem; font-weight:800; margin:.3rem 0; }
       #quiz .result p { color:#94a3b8; margin-bottom:1.3rem; }
       #quiz .playagain { padding:.7rem 1.5rem; border-radius:11px; border:0; cursor:pointer; font-weight:700; background:linear-gradient(135deg,var(--sky),var(--indigo)); color:#0b1020; }
+      /* easter eggs: typing cursor, hyperdrive banner, terminal */
+      .cursor { display:inline-block; margin-left:2px; color:var(--indigo2); animation:blink 1s step-end infinite; }
+      @keyframes blink { 50%{opacity:0} }
+      #banner { position:fixed; top:24%; left:50%; transform:translateX(-50%); z-index:30; padding:.7rem 1.6rem; border-radius:12px;
+        font-weight:800; font-size:1.3rem; letter-spacing:.05em; color:#0b1020; background:linear-gradient(135deg,#38bdf8,#a5b4fc);
+        box-shadow:0 12px 50px rgba(56,189,248,.6); opacity:0; pointer-events:none; transition:opacity .3s; text-align:center; }
+      #term-btn { position:fixed; bottom:18px; right:18px; z-index:15; font-family:ui-monospace,Menlo,monospace; cursor:pointer;
+        padding:.5rem .8rem; border-radius:10px; border:1px solid rgba(56,189,248,.4); background:rgba(10,15,35,.8); color:#5eead4; font-size:.85rem; backdrop-filter:blur(6px); }
+      #term-btn:hover { border-color:#5eead4; }
+      #term { position:fixed; inset:0; z-index:25; display:none; place-items:center; padding:1.5rem; background:rgba(1,3,12,.6); }
+      #term .win { width:100%; max-width:640px; height:min(70vh,460px); display:flex; flex-direction:column;
+        background:rgba(6,10,24,.97); border:1px solid rgba(94,234,212,.3); border-radius:12px; overflow:hidden; box-shadow:0 30px 90px rgba(0,0,0,.8); }
+      #term .bar { display:flex; align-items:center; gap:.5rem; padding:.6rem .8rem; background:rgba(20,28,48,.9); border-bottom:1px solid rgba(94,234,212,.15); }
+      #term .dot { width:11px; height:11px; border-radius:50%; display:inline-block; }
+      .dot.r{background:#ff5f56}.dot.y{background:#ffbd2e}.dot.g{background:#27c93f}
+      #term .bar span { margin-left:.4rem; color:#94a3b8; font-size:.8rem; font-family:ui-monospace,Menlo,monospace; }
+      #term .body { flex:1; overflow-y:auto; padding:.9rem 1rem; font-family:ui-monospace,Menlo,monospace; font-size:.85rem; line-height:1.5; color:#cbd5e1; white-space:pre-wrap; }
+      #term .body .ok{color:#5eead4} #term .body .dim{color:#64748b} #term .body .warn{color:#f59e0b}
+      #term .ln { display:flex; gap:.5rem; padding:0 1rem .9rem; font-family:ui-monospace,Menlo,monospace; font-size:.85rem; }
+      #term .ln .p { color:#5eead4; } #term input { flex:1; background:none; border:0; outline:0; color:#e2e8f0; font-family:inherit; font-size:inherit; }
       @media (max-width:560px){ .job-meta{text-align:left} h1{font-size:1.8rem} }
     </style>
     </head>
     <body>
       <canvas id="bg"></canvas>
       <div id="tip"></div>
+      <div id="banner"></div>
+      <button id="term-btn" onclick="toggleTerm()" title="Open terminal (or press the ` key)">❯_ terminal</button>
       <div class="content">
         <header class="hero">
           <div class="card">
             <div class="avatar"><img src="photo.jpg" alt="Moath Salman"></div>
             <h1>Moath Salman</h1>
-            <div class="role">Platform Engineer · DevOps</div>
+            <div class="role"><span id="role-text">Platform Engineer</span><span class="cursor">▋</span></div>
             <div class="badge">🇺🇸 U.S. Citizen · No sponsorship required</div>
             <div class="contact">
               <a href="mailto:moathsalman96@gmail.com">moathsalman96@gmail.com</a>
@@ -188,6 +210,11 @@ data:
         </div></section>
       </div>
       <div id="quiz"><div class="qcard" id="qcard"></div></div>
+      <div id="term"><div class="win">
+        <div class="bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span>moath@lemoncluster:~</span></div>
+        <div class="body" id="term-body"></div>
+        <div class="ln"><span class="p">moath@lemoncluster:~$</span><input id="term-input" autocomplete="off" spellcheck="false" aria-label="terminal input"></div>
+      </div></div>
       <footer>Served from <strong>lemoncluster</strong> · Cloudflare Tunnel · GitOps with FluxCD · hover a planet ✦</footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -279,9 +306,9 @@ data:
 
     let t=0;
     addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
-    (function loop(){ requestAnimationFrame(loop); t+=0.004;
-      milky.rotation.y+=0.0002; sun.rotation.y+=0.002;
-      planets.forEach(p=>{ p.angle+=0.004*p.spd; const x=Math.cos(p.angle)*p.rad, z=Math.sin(p.angle)*p.rad;
+    (function loop(){ requestAnimationFrame(loop); const boost=window.speedBoost||1; t+=0.004*boost;
+      milky.rotation.y+=0.0002*boost; sun.rotation.y+=0.002*boost;
+      planets.forEach(p=>{ p.angle+=0.004*p.spd*boost; const x=Math.cos(p.angle)*p.rad, z=Math.sin(p.angle)*p.rad;
         p.mesh.position.set(x,0,z); p.mesh.rotation.y+=0.01;
         if(p.moon){ p.moonAngle+=0.05; p.moon.position.set(x+Math.cos(p.moonAngle)*14,Math.sin(p.moonAngle)*4,z+Math.sin(p.moonAngle)*14); } });
       camera.position.x+=((mx*160)-camera.position.x)*0.02; camera.position.y+=((230-my*120)-camera.position.y)*0.02; camera.lookAt(0,0,0);
@@ -387,6 +414,66 @@ data:
         <button class="playagain" onclick="startQuiz()">Play again</button>
         <button class="playagain" style="background:#334155;color:#e2e8f0;margin-left:.4rem" onclick="closeQuiz()">Close</button></div>`;
     }
+    </script>
+
+    <script>
+    // ---------- Easter eggs: typing role, Konami hyperdrive, terminal ----------
+    const ROLES=["Platform Engineer","DevOps Engineer","Kubernetes Operator","Cloud Infrastructure Engineer","GitOps Practitioner","SRE"];
+    let _r=0,_c=0,_del=false;
+    (function type(){ const rt=document.getElementById('role-text'); if(!rt) return; const full=ROLES[_r];
+      if(!_del){ rt.textContent=full.slice(0,++_c); if(_c===full.length){ _del=true; return setTimeout(type,1500);} }
+      else { rt.textContent=full.slice(0,--_c); if(_c===0){ _del=false; _r=(_r+1)%ROLES.length; } }
+      setTimeout(type,_del?40:85);
+    })();
+
+    // Konami code -> hyperdrive
+    const KON=['arrowup','arrowup','arrowdown','arrowdown','arrowleft','arrowright','arrowleft','arrowright','b','a']; let _k=0;
+    function banner(txt){ const b=document.getElementById('banner'); b.textContent=txt; b.style.opacity=1; clearTimeout(b._t); b._t=setTimeout(()=>b.style.opacity=0,3500); }
+    function hyperdrive(){ window.speedBoost=16; banner('⚡ HYPERDRIVE ENGAGED'); setTimeout(()=>{window.speedBoost=1;},4200); }
+    addEventListener('keydown',e=>{
+      const k=(e.key||'').toLowerCase();
+      if(k===KON[_k]){ if(++_k===KON.length){ hyperdrive(); _k=0; } } else { _k=(k===KON[0])?1:0; }
+      if(k==='`' && e.target.id!=='term-input'){ e.preventDefault(); toggleTerm(); }
+    });
+
+    // Fake terminal
+    const TB=()=>document.getElementById('term-body');
+    function tprint(html){ const b=TB(); b.innerHTML+=html+'\n'; b.scrollTop=b.scrollHeight; }
+    function toggleTerm(){ const t=document.getElementById('term'); const open=t.style.display!=='grid';
+      t.style.display=open?'grid':'none'; if(open){ if(!TB().innerHTML) runCmd('help'); setTimeout(()=>document.getElementById('term-input').focus(),50); } }
+    const CMDS={
+      help:()=>`<span class="ok">available commands:</span>\n  whoami   skills   experience   certs   contact\n  ls   cat &lt;file&gt;   kubectl get pods   neofetch\n  resume   github   linkedin   date   echo &lt;txt&gt;   clear   exit`,
+      whoami:()=>`moath — Platform Engineer · DevOps (5+ yrs). <span class="dim">U.S. Citizen, no sponsorship required.</span>`,
+      ls:()=>`resume.pdf   skills/   experience/   certs/   contact.txt`,
+      skills:()=>`Kubernetes · AWS (EKS) · Terraform · Istio · FluxCD · ArgoCD · Prometheus · Grafana · Docker · Helm · Bash · Python`,
+      experience:()=>`Platform Engineer @ Egencia, American Express  <span class="dim">(2023–present)</span>\nDevOps Engineer @ Abbott  <span class="dim">(2020–2023)</span>`,
+      certs:()=>`AWS SAA-C03 · CKA · CKAD · HashiCorp Terraform Associate`,
+      contact:()=>`email: moathsalman96@gmail.com\nphone: 773-828-2105\nlocation: Chicago, IL`,
+      neofetch:()=>`<span class="ok">   .--.   </span> moath@lemoncluster\n<span class="ok">  |o_o |  </span> ---------------\n<span class="ok">  |:_/ |  </span> role: Platform Engineer\n<span class="ok"> //   \\ \\ </span> cluster: lemoncluster (RKE2)\n<span class="ok">(|     | )</span> cni: Cilium · gitops: FluxCD\n<span class="ok"> /'\\_ _/\`\\</span> ingress: Cloudflare Tunnel\n<span class="ok"> \\___)=(___/</span> uptime: warp speed`,
+      date:()=>new Date().toString(),
+      github:()=>{ window.open('https://github.com/moathsalman4','_blank'); return 'opening github…'; },
+      linkedin:()=>{ window.open('https://www.linkedin.com/in/moath-salman1a/','_blank'); return 'opening linkedin…'; },
+      resume:()=>{ window.open('resume.pdf','_blank'); return 'opening resume.pdf…'; },
+      sudo:()=>`<span class="warn">nice try 😏 — you already have root here.</span>`,
+      coffee:()=>`☕ brewing… done.`,
+      exit:()=>{ toggleTerm(); return ''; },
+      clear:()=>{ TB().innerHTML=''; return ''; },
+    };
+    function runCmd(raw){
+      const line=(raw||'').trim();
+      if(line) tprint(`<span class="ok">moath@lemoncluster:~$</span> ${line.replace(/</g,'&lt;')}`);
+      const parts=line.split(/\s+/), cmd=parts[0], rest=parts.slice(1), arg=rest.join(' ');
+      if(cmd==='') return;
+      if(cmd==='echo'){ tprint(arg.replace(/</g,'&lt;')); return; }
+      if(cmd==='cat'){ const f=rest[0]||''; if(f==='resume.pdf'){ tprint(CMDS.resume()); return; } const fn=CMDS[f]||CMDS[f.replace('.txt','')]; tprint(fn?fn():`cat: ${f.replace(/</g,'&lt;')||''}: no such file`); return; }
+      if(cmd==='kubectl'){ tprint(arg==='get pods'
+        ? `NAME                 READY   STATUS    AGE\nnginx-xxxx           1/1     Running   ∞\ncloudflared-aaaa     1/1     Running   ∞\ncloudflared-bbbb     1/1     Running   ∞`
+        : `try: kubectl get pods`); return; }
+      const fn=CMDS[cmd]; const out=fn?fn():`command not found: ${cmd.replace(/</g,'&lt;')} — type <span class="ok">help</span>`;
+      if(out) tprint(out);
+    }
+    (function(){ const inp=document.getElementById('term-input');
+      if(inp) inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ runCmd(inp.value); inp.value=''; } }); })();
     </script>
     </body>
     </html>
