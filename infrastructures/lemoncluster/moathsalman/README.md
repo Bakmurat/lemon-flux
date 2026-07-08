@@ -173,31 +173,51 @@ only exists once the controller decrypts the SealedSecret.
 Commit and push. Flux reconciles automatically (or force it:
 `flux reconcile kustomization moathsalman -n flux-system --with-source`).
 
-### 4. Complete the tunnel's public hostname
+### 4. Complete the tunnel's public hostname (route)
 
 Once the pods are confirmed running (`kubectl get all -n moathsalman`) and
 the SealedSecret has decrypted (`kubectl get secret cloudflared-tunnel-token
--n moathsalman`), go back to **Zero Trust → Networks → Tunnels → [tunnel] →
-Public Hostname** and add:
+-n moathsalman`), go back to the tunnel in the Cloudflare dashboard. A freshly
+created tunnel shows **Routes: 0** — the connector is healthy but nothing is
+mapped to it yet, so the domain won't resolve until you add a route.
 
-- **Hostname:** `moathsalman.com`
-- **Service type:** HTTP
-- **URL:** `nginx.moathsalman.svc.cluster.local:80`
+Open the tunnel → **Routes** tab → **Add route** (newer UI calls this
+"Add published application"), route type **Public hostname**, and set:
 
-Cloudflare auto-creates the corresponding DNS record — no manual A/CNAME
-record needed. The Service name/namespace here must match the manifests
-exactly, or requests will 502.
+- **Subdomain:** *(leave blank)*
+- **Domain:** `moathsalman.com`
+- **Path:** *(leave blank — matches all paths)*
+- **Service URL:** `http://nginx.moathsalman.svc.cluster.local:80`
+
+Two gotchas in the current Cloudflare UI:
+
+- The **Service URL must include the `http://` scheme**. The old UI had a
+  separate "Type: HTTP" dropdown; the new single field rejects a
+  scheme-less value with *"Invalid service URL format."* Use `http://`
+  (not `https://`) — the cloudflared→nginx hop inside the cluster is plain
+  HTTP by design.
+- The Service host/port must match the manifests exactly
+  (`nginx.moathsalman.svc.cluster.local:80`), or requests will `502`.
+
+Cloudflare auto-creates the corresponding proxied DNS record — no manual
+A/CNAME needed.
 
 ## Verification checklist
 
 ```bash
-kubectl get all -n moathsalman                              # nginx 1/1, cloudflared 2/2, Service present
+kubectl get all -n moathsalman                               # nginx 1/1, cloudflared 2/2, Service present
 kubectl get secret cloudflared-tunnel-token -n moathsalman   # confirms SealedSecret decrypted
-kubectl logs -n moathsalman deploy/cloudflared --tail=30     # look for a successful tunnel registration
+kubectl logs -n moathsalman deploy/cloudflared --tail=30     # look for "Registered tunnel connection ... protocol=http2"
+
+# Public reachability (only works after the route in step 4 is added):
+dig +short moathsalman.com @1.1.1.1                          # should return Cloudflare proxy IPs (104.x / 172.x)
+curl -sSI -L https://moathsalman.com                         # should be HTTP 200
 ```
 
 Then load `https://moathsalman.com` in a browser and confirm it serves
-over HTTPS.
+over HTTPS. Note: until the route is added in step 4, the tunnel can be
+**Healthy with Routes: 0** and the domain will still fail to resolve —
+a healthy connector alone does not make the site reachable.
 
 ## Issues encountered during setup
 
