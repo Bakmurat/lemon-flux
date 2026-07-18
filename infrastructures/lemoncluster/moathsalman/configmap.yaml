@@ -237,12 +237,11 @@ data:
 
         <section class="summary" id="summary"><div class="card reveal">
           <h2>Professional Summary<span class="pbadge">☀️ Sun</span></h2>
-          <p>Platform Engineer with 5+ years of experience designing and operating multi-account AWS EKS platforms,
-          automating infrastructure with Terraform, and improving production reliability through observability, GitOps,
-          and secure access controls. Increased engineering delivery speed by ~40% by consolidating fragmented CI/CD
-          pipelines into a single GitHub Actions workflow supporting 8+ services. Experienced with Istio service mesh,
-          GitOps delivery (FluxCD, ArgoCD), full-stack monitoring with Prometheus/Grafana/Thanos, and integrating
-          AI-assisted tooling (Claude Code, MCP automation) into platform workflows to cut operational overhead.</p>
+          <p>Platform Engineer with 5+ years building and operating cloud-native infrastructure that improves
+          developer velocity, system reliability, and engineering efficiency. Increased engineering delivery speed
+          by ~40% by consolidating fragmented CI/CD pipelines into a unified workflow supporting 8+ services.
+          Combines infrastructure automation, GitOps delivery, production observability, and AI-assisted workflows
+          to reduce operational overhead and help teams ship faster and more reliably.</p>
         </div></section>
 
         <section id="skills"><div class="card reveal">
@@ -279,13 +278,13 @@ data:
           <div class="job">
             <div class="job-head"><div class="job-title">DevOps Engineer · <span class="co">Abbott</span></div><div class="job-meta">Chicago, IL (On-Site)<br>Jun 2020 – Mar 2023</div></div>
             <ul>
+              <li>Automated deployment validation and environment checks with Bash and Python, replacing a manual, error-prone verification step and helping cut release turnaround from days to hours.</li>
+              <li>Improved staging deployment reliability for 5+ backend services across 2 environments, reducing failed deployments by roughly 30% and catching issues before they reached production.</li>
               <li>Deployed and managed containerized services on AWS EKS using Helm charts and GitLab CI pipelines for consistent delivery.</li>
-              <li>Supported and improved staging release processes for 5+ backend services, ensuring consistent and reliable deployments.</li>
-              <li>Built and deployed a Node.js/React application to validate API connectivity and database integration in containers.</li>
               <li>Implemented secure infrastructure access using IAM policies and bastion hosts, preventing public exposure of internal systems.</li>
-              <li>Automated deployment validation and environment checks using Bash and Python scripts, significantly reducing manual effort.</li>
-              <li>Collaborated with backend engineers to resolve API failures, database issues, and container runtime errors before production.</li>
-              <li>Supported application deployments across AWS and Azure cloud environments, managing containerized workloads and API services.</li>
+              <li>Built and deployed a Node.js/React application to validate API connectivity and database integration in containers.</li>
+              <li>Collaborated with backend engineers to resolve API failures, database issues, and container runtime errors before they reached production.</li>
+              <li>Supported application deployments across AWS and Azure environments, managing containerized workloads and API services.</li>
             </ul>
           </div>
         </div></section>
@@ -305,6 +304,9 @@ data:
 
         <section id="certs"><div class="card reveal">
           <h2>Education &amp; Certifications<span class="pbadge">🔵 Neptune</span></h2>
+          <div class="skill-label" style="margin-bottom:.6rem">Education</div>
+          <div class="cert" style="margin-bottom:1.2rem">B.S. in Computer Science — Western Governors University <span style="color:#94a3b8">· In Progress, Expected 2028</span></div>
+          <div class="skill-label" style="margin-bottom:.6rem">Certifications</div>
           <div class="certs">
             <div class="cert">AWS Certified Solutions Architect – Associate (SAA-C03)</div>
             <div class="cert">Certified Kubernetes Administrator (CKA)</div>
