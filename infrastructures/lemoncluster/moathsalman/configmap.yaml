@@ -225,7 +225,7 @@ data:
               <a href="mailto:moathsalman96@gmail.com">moathsalman96@gmail.com</a>
               <span>Chicago, IL</span>
               <a href="https://www.linkedin.com/in/moath-salman1a/" target="_blank" rel="noopener">LinkedIn</a>
-              <a href="https://github.com/moathsalman4" target="_blank" rel="noopener">GitHub</a>
+              <a href="https://github.com/Bakmurat" target="_blank" rel="noopener">GitHub</a>
             </div>
             <div class="btns">
               <a class="btn btn-primary" href="#experience">View experience</a>
@@ -625,7 +625,7 @@ data:
       flux:()=>`NAME             READY  MESSAGE                       REVISION\ninfrastructures  True   Applied revision: main        main@sha1:9f3c2ab\napps             True   Applied revision: main        main@sha1:9f3c2ab\nmoathsalman      True   Applied revision: main        main@sha1:9f3c2ab`,
       htop:()=>`  CPU[<span class="ok">|||||||||</span>          38%]   Tasks: 142, 21 thr\n  Mem[<span class="ok">|||||||||||||</span>      52%]   Load avg: 0.42 0.51 0.48\n  <span class="dim">PID USER   %CPU %MEM  COMMAND</span>\n  1042 root    4.2  1.8  kubelet\n  2183 root    3.1  2.4  cilium-agent\n  3288 1000    2.0  3.1  cloudflared tunnel run`,
       date:()=>new Date().toString(),
-      github:()=>{ window.open('https://github.com/moathsalman4','_blank'); return 'opening github…'; },
+      github:()=>{ window.open('https://github.com/Bakmurat','_blank'); return 'opening github…'; },
       linkedin:()=>{ window.open('https://www.linkedin.com/in/moath-salman1a/','_blank'); return 'opening linkedin…'; },
       resume:()=>{ window.open('resume.pdf','_blank'); return 'opening resume.pdf…'; },
       sudo:()=>`<span class="warn">nice try 😏 — you already have root here.</span>`,
